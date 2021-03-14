@@ -26,8 +26,21 @@
                     </ul>
                     <div class="text-right">
 
-                        <a class="mr-3" href="/admin/product">Management</a>
-                        <div class="d-inline-block">@User.Identity.Name</div>
+
+
+                        @{
+                            if (User.Identity.Name != null)
+                            {
+                                <a class="mr-3" href="/admin/product">Management</a>
+                                <div class="d-inline-block">@User.Identity.Name</div>
+                                <a class="mr-3" href="/auth/logout">Logout</a>
+                            }
+                            else
+                            {
+                                <a class="mr-3" href="/login">Login</a>
+                            }
+                        }
+
                     </div>
                 </div>
             </div>
