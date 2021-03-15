@@ -42,6 +42,8 @@ namespace Inveon.ECommerce.WebApp
                     });
             services.AddTransient<IProductService,ProductManager>();
             services.AddTransient<IProductRepository, ProductDal>();
+            services.AddTransient<IProductImageService, ProductImageManager>();
+            services.AddTransient<IProductImageRepository, ProductImageDal>();
             services.AddTransient<IUserService, UserManager>();
             services.AddTransient<IUserRepository, UserDal>();
          

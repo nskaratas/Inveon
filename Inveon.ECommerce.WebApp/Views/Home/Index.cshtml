@@ -1,6 +1,4 @@
-﻿@model List<Inveon.ECommerce.Entities.Product>
-@using Microsoft.AspNetCore.Hosting
-@inject IHostingEnvironment HostingEnvironment
+﻿@model List<Inveon.ECommerce.WebApp.Models.ProductModel> 
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -10,26 +8,20 @@
     <div class="row">
         @foreach (var item in Model)
         {
-            <div class="col-6 col-lg-4 col-xl-3 mb-3">
-                @{
+        <div class="col-6 col-lg-4 col-xl-3 mb-3">
 
-                    var path = HostingEnvironment.WebRootPath + "\\Uploads\\" + item.Image;
-                    if (item.Image != null && System.IO.File.Exists(path))
-                    {
-                        <img src="../Uploads/@item.Image" class="img-fluid" />
-                    }
-                    else
-                    {
-                        <img src="~/no-photo.jpg" class="img-fluid" alt="no-photo.jpg" />
-                    }
-                }
+            @{
+               
+              <img src="@item.Cover" class="img-fluid"/>
+              
+            }
 
-                <div class="bg-white rounded p-3">
-                    <h3>@item.Name</h3>
-                    <p>@item.Description</p>
-                    <span>@item.Price <span>TL</span></span>
-                </div>
+            <div class="bg-white rounded p-3">
+                <h3>@item.Name</h3>
+                <p>@item.Description</p>
+                <span>@item.Price <span>TL</span></span>
             </div>
+        </div>
         }
     </div>
 </div>

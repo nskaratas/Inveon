@@ -25,11 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Migrations\" />
     <Folder Include="wwwroot\Uploads\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\Uploads\1eaebf57-2078-4aba-ad65-6716027edbae_INS-164.jpg" />
   </ItemGroup>
 
 </Project>

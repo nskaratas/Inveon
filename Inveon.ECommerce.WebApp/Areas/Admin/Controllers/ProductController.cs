@@ -10,8 +10,8 @@ using Inveon.ECommerce.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Inveon.ECommerce.WebApp.Models;
-using System.IO;
-using Microsoft.AspNetCore.Hosting;
+using System.IO; 
+using Inveon.ECommerce.Business.Abstract;
 
 namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
 {
@@ -19,36 +19,31 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
     [Authorize]
     public class ProductController : Controller
     {
-        private readonly ECommerceDBContext _context;
-        private readonly IWebHostEnvironment webHostEnvironment;
-        public ProductController(ECommerceDBContext context, IWebHostEnvironment hostEnvironment)
+        private readonly IProductService productService; 
+        private readonly IProductImageService productImageService;
+      
+        public ProductController(IProductService productService, IProductImageService productImageService)
         {
-            _context = context;
-            webHostEnvironment = hostEnvironment;
+            this.productService = productService; 
+            this.productImageService = productImageService; 
         }
         [Route("admin/product")]
         // GET: admin/product/Products
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
 
-            return View(await _context.Products.ToListAsync());
+            return View(productService.GetAll());
         }
         [Route("admin/product/details/{id}")]
         // GET: admin/product/Products/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(m => m.Id == id);
+        public IActionResult Details(int id)
+        { 
+            var product = productService.GetById(id); 
             if (product == null)
             {
                 return NotFound();
             }
-
+            product.Images = productImageService.ProductImages(id);
             return View(product);
         }
         [Route("admin/product/create")]
@@ -64,26 +59,17 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
         [HttpPost]
         [Route("admin/product/create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,File,Barcode,Price,Quantity")] ProductModel product)
+        public IActionResult Create([Bind("Id,Name,Description,Files,Barcode,Price,Quantity")] ProductModel product)
         {
             if (ModelState.IsValid)
             {
-
-                if (product.File != null)
+            
+                productService.Add(product);
+                if (product.Files != null)
                 {
-                    string uniqueFileName = null;
-                    string uploadsFolder = Path.Combine(webHostEnvironment.WebRootPath, "Uploads");
-                    uniqueFileName = Guid.NewGuid().ToString() + "_" + product.File.FileName;
-                    product.Image = uniqueFileName;
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        product.File.CopyTo(fileStream);
-                    }
+                    productImageService.UploadImages(product.Files, product.Id);
                 }
-                _context.Add(product);
 
-                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
@@ -91,14 +77,10 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
 
         [Route("admin/product/edit/{id}")]
         // GET: admin/product/Products/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products.FindAsync(id); 
+            
+            var product =  productService.GetById(id); 
             if (product == null)
             {
                 return NotFound();
@@ -109,10 +91,9 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
                 Name = product.Name,
                 Barcode = product.Barcode,
                 Description = product.Description,
-                Image = product.Image,
                 Price = product.Price,
-                Quantity = product.Quantity
-
+                Quantity = product.Quantity,
+                Files=null
             };
             return View(model);
         }
@@ -123,7 +104,7 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
         [HttpPost]
         [Route("admin/product/edit/{id}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,File,Barcode,Price,Quantity")] ProductModel product)
+        public IActionResult Edit(int id, [Bind("Id,Name,Description,Files,Barcode,Price,Quantity")] ProductModel product)
         {
             if (id != product.Id)
             {
@@ -133,21 +114,12 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
             if (ModelState.IsValid)
             {
                 try
-                {
-                    if (product.File != null)
+                {  
+                    productService.Update(product);
+                    if (product.Files != null)
                     {
-                        string uniqueFileName = null;
-                        string uploadsFolder = Path.Combine(webHostEnvironment.WebRootPath, "Uploads");
-                        uniqueFileName = Guid.NewGuid().ToString() + "_" + product.File.FileName;
-                        product.Image = uniqueFileName;
-                        string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            product.File.CopyTo(fileStream);
-                        }
+                        productImageService.UploadImages(product.Files, product.Id);
                     }
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -164,22 +136,18 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
             }
             return View(product);
         }
+
+
         [Route("admin/product/delete/{id}")]
         // GET: admin/product/Products/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var product = await _context.Products
-                .FirstOrDefaultAsync(m => m.Id == id);
+            
+            var product = productService.GetById(id);
             if (product == null)
             {
                 return NotFound();
-            }
-
+            } 
             return View(product);
         }
 
@@ -187,17 +155,53 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
         [HttpPost, ActionName("Delete")]
         [Route("admin/product/delete/{id}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var product = await _context.Products.FindAsync(id);
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            var product =  productService.GetById(id);
+            productService.Delete(product); 
             return RedirectToAction(nameof(Index));
         }
 
+
+
+
+        [Route("admin/product/deleteImage/{id}")]
+        // GET: admin/product/Products/Delete/5
+        public IActionResult DeleteImage(int id)
+        {
+
+            var image = productImageService.GetById(id);
+            if (image == null)
+            {
+                return NotFound();
+            }
+            return View(image);
+        }
+
+        // POST: admin/product/Products/Delete/5
+        [HttpPost, ActionName("DeleteImage")]
+        [Route("admin/product/deleteImage/{id}")]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteImageConfirmed(int id)
+        {
+            var image = productImageService.GetById(id);
+            productImageService.Delete(image);
+            return RedirectToAction(nameof(Index));
+        }
+
+
+
+
         private bool ProductExists(int id)
         {
-            return _context.Products.Any(e => e.Id == id);
+            if (productService.GetById(id) != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
-    }
+     }
 }
