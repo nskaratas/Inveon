@@ -43,8 +43,18 @@ namespace Inveon.ECommerce.WebApp.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+            ProductModel model = new ProductModel
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Barcode = product.Barcode,
+                Description = product.Description,
+                Price = product.Price,
+                Quantity = product.Quantity,
+                Images = productImageService.ProductImages(id)   
+            };
             product.Images = productImageService.ProductImages(id);
-            return View(product);
+            return View(model);
         }
         [Route("admin/product/create")]
         // GET: admin/product/Products/Create

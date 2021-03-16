@@ -1,28 +1,22 @@
 ﻿using Inveon.Core.Entities;
+using Inveon.ECommerce.Entities;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Text;
 
-namespace Inveon.ECommerce.Entities
+namespace Inveon.ECommerce.Business.DTOs
 {
-    public class Product : IEntity
+    public class ProductDto:IEntity
     {
-        [Key]
         public int Id { get; set; }
-        [Required]
-        [StringLength(100)]
         public string Name { get; set; }
-        [Required]
-        [StringLength(255)]
         public string Description { get; set; }
-        [Required]
-        [StringLength(16)]
         public string Barcode { get; set; }
-        [Required]
         public decimal Price { get; set; }
-        [Required]
         public decimal Quantity { get; set; }
         public List<ProductImage> Images { get; set; }
+        public List<IFormFile> Files { get; set; }
+        public string Cover { get; set; }
     }
 }

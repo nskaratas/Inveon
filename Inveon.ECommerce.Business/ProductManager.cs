@@ -1,4 +1,5 @@
 ﻿using Inveon.ECommerce.Business.Abstract;
+using Inveon.ECommerce.Business.DTOs;
 using Inveon.ECommerce.DataAccess.Abstract;
 using Inveon.ECommerce.Entities;
 using System;
@@ -12,10 +13,11 @@ namespace Inveon.ECommerce.Business
     public class ProductManager : IProductService
     {
         IProductRepository repo;
-
-        public ProductManager(IProductRepository repo)
+        IProductImageService imageService;
+        public ProductManager(IProductRepository repo, IProductImageService imageService)
         {
             this.repo = repo;
+            this.imageService = imageService;
         }
 
         public void Add(Product entity)
@@ -28,9 +30,18 @@ namespace Inveon.ECommerce.Business
             repo.Delete(entity);
         }
 
-        public List<Product> GetAll()
+        public List<ProductDto> GetAll()
         {
-            return repo.GetAll().ToList();
+            return repo.GetAll().Select(x=>new ProductDto { 
+                Id=x.Id,
+                Name=x.Name,
+                Barcode=x.Barcode,
+                Description=x.Description,
+                Price=x.Price,
+                Quantity=x.Quantity,
+                Images=imageService.ProductImages(x.Id),
+                Cover = imageService.Cover(x.Id),
+            }).ToList();
         }
 
         public Product GetById(int Id)

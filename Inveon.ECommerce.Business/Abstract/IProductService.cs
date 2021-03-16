@@ -1,4 +1,5 @@
-﻿using Inveon.ECommerce.Entities;
+﻿using Inveon.ECommerce.Business.DTOs;
+using Inveon.ECommerce.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -8,7 +9,7 @@ namespace Inveon.ECommerce.Business.Abstract
 {
    public interface IProductService
     {
-        List<Product> GetAll();
+        List<ProductDto> GetAll();
         List<Product> GetEx(Expression<Func<Product, bool>> predicate);
         Product GetById(int Id);
         void Add(Product entity);

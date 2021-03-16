@@ -1,4 +1,5 @@
 ﻿using Inveon.ECommerce.Business.Abstract;
+using Inveon.ECommerce.Business.DTOs;
 using Inveon.ECommerce.Entities;
 using Inveon.ECommerce.WebApp.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -26,23 +27,7 @@ namespace Inveon.ECommerce.WebApp.Controllers
 
         public IActionResult Index()
         {
-            List<Product> data = productService.GetAll();
-            List<ProductModel> products = new List<ProductModel>();
-            foreach (var item in data)
-            {
-                ProductModel product = new ProductModel
-                {
-                    Id = item.Id,
-                    Name = item.Name,
-                    Barcode = item.Barcode,
-                    Description = item.Description,
-                    Price = item.Price,
-                    Quantity = item.Quantity,
-                    Cover = productImageService.Cover(item.Id)
-
-                };
-                products.Add(product);
-            }
+            List<ProductDto> products = productService.GetAll();
             return View(products);
         }
         
